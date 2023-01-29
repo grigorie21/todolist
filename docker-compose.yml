@@ -1,0 +1,45 @@
+# For more information: https://laravel.com/docs/sail
+version: '3'
+services:
+    todo_php:
+        container_name: todo_php
+        image: devilbox/php-fpm:8.1-work
+        volumes:
+            - ./:/var/www/default/htdocs
+        working_dir: /var/www/default/htdocs
+        networks:
+            - todo
+
+    todo_nginx:
+        container_name: todo_nginx
+        image: devilbox/nginx-stable
+        volumes:
+            - ./:/var/www/default/htdocs
+        environment:
+            - PHP_FPM_ENABLE=1
+            - PHP_FPM_SERVER_ADDR=todo_php
+            - MAIN_VHOST_DOCROOT=htdocs/public
+            - DOCKER_LOGS=1
+        networks:
+            - todo
+        ports:
+            - 80:80
+
+    todo_pgsql:
+        container_name: todo_pgsql
+        image: 'postgres:13'
+        ports:
+            - '5480:5432'
+        environment:
+            PGPASSWORD: 'todo'
+            POSTGRES_DB: 'todo'
+            POSTGRES_USER: 'todo'
+            POSTGRES_PASSWORD: 'todo'
+        volumes:
+            - ./docker/data/postgres:/var/lib/postgresql/data
+        networks:
+            - todo
+
+networks:
+    todo:
+        driver: bridge
